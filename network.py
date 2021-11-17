@@ -57,11 +57,11 @@ def make_request(url, clear_cookies=True, timeout=60, *args, **kwargs):
     while True:
         try:
             response = sess.get(url, headers=headers, timeout=timeout, *args, **kwargs)
-            retry_count_500 += 1
             if response.status_code == 500:
+                retry_count_500 += 1
                 time.sleep(retry_count_500 * 1)
                 continue
-            if retry_count_500 >= max_retries:
+            if retry_count_500 >= max_retries or response.status_code == 200:
                 break
         except (
             requests.exceptions.ConnectionError,
@@ -132,7 +132,7 @@ def get_subtitles_using_api(youtube_id):
 
 def get_subtitles_using_youtube_dl(youtube_id):
     youtube_url = 'https://youtube.com/watch?v=' + youtube_id
-    yt_resource = YouTubeResource(youtube_url)
+    yt_resource = YouTubeResource(youtube_url, useproxy=False)
     lang_codes = []
     try:
         result = yt_resource.get_resource_subtitles()

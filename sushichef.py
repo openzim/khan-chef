@@ -107,7 +107,7 @@ class KhanAcademySushiChef(JsonTreeChef):
         # Build dict with all the info required to create the ChannelNode object
         channel_dict = dict(
             source_id=channel_source_id,
-            source_domain="khanacademy.org",
+            source_domain=f"{lang}.khanacademy.org",
             title=get_channel_title(lang=lang, variant=variant),
             description=get_channel_description(lang=lang, variant=variant),
             thumbnail=os.path.join("chefdata", "khan-academy-logo.png"),
