@@ -57,12 +57,13 @@ def make_request(url, clear_cookies=True, timeout=60, *args, **kwargs):
     while True:
         try:
             response = sess.get(url, headers=headers, timeout=timeout, *args, **kwargs)
-            if response.status_code == 500:
+            if response.status_code >= 500:
                 retry_count_500 += 1
                 time.sleep(retry_count_500 * 1)
+                if retry_count_500 >= max_retries:
+                    break
                 continue
-            if retry_count_500 >= max_retries or response.status_code == 200:
-                break
+            break
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ReadTimeout,
