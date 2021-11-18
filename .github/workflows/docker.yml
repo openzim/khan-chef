@@ -1,0 +1,28 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - master
+      - tsvkhan
+    tags: ["*"]
+
+jobs:
+  build-and-push:
+    name: Deploy Docker Image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and push
+        uses: openzim/docker-publish-action@v6
+        with:
+          image-name: openzim/khan-chef
+          on-master: dev
+          tag-pattern: /^([a-z\-_0-9]+)$/
+          latest-on-tag: true
+          restrict-to: openzim/khan-chef
+          credentials:
+            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
