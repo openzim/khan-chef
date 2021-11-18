@@ -22,7 +22,7 @@ forever_adapter = CacheControlAdapter(heuristic=CacheForeverHeuristic(), cache=c
 invalidate_adapter = InvalidatingCacheControlAdapter(cache=cache)
 
 sess.mount("http://www.khanacademy.org/api/v2/topics/topictree", forever_adapter)
-sess.mount("http://www.khanacademy.org/api/v1/assessment_items/", forever_adapter)
+sess.mount("http://www.khanacademy.org/api/internal/assessment_items", forever_adapter)
 sess.mount("https://api.crowdin.com", forever_adapter)
 # TODO: review caching used by make_request to avoid need to delete .webcache
 
