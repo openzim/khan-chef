@@ -72,6 +72,23 @@ EXERCISE_MAPPING = {
 CC_MAPPING = {}  # Common Core State Standards slug -> list(tag) to apply
 
 
+def is_unavail_video(ident):
+    ydl = youtube_dl.YoutubeDL(
+        {
+            "no_warnings": True,
+            "writesubtitles": False,
+            "allsubtitles": False,
+            "ignoreerrors": False,  # Skip over deleted videos in a playlist
+            "skip_download": True,
+        }
+    )
+    try:
+        return ydl.extract_info(ident) is None
+    except (youtube_dl.utils.DownloadError, youtube_dl.utils.ExtractorError) as exc:
+        if "private video" in str(exc).lower() or "deleted video" in str(exc).lower():
+            return True
+
+
 class KhanAcademySushiChef(JsonTreeChef):
     """
     Khan Academy sushi chef.
@@ -335,6 +352,10 @@ class KhanAcademySushiChef(JsonTreeChef):
                     )
                     return None
 
+            # extract info so we can detect and skip Private Videos
+            if is_unavail_video(ka_node.youtube_id):
+                return None
+
             files = [
                 dict(
                     file_type="video",
@@ -429,6 +450,10 @@ def youtube_playlist_scraper(channel_id, channel_node):
     youtube_channel_url = "https://www.youtube.com/channel/{}/playlists".format(
         channel_id
     )
+
+    if is_unavail_video(youtube_channel_url):
+        return None
+
     youtube_channel = ydl.extract_info(youtube_channel_url)
     for playlist in youtube_channel["entries"]:
         if playlist:
@@ -442,6 +467,8 @@ def youtube_playlist_scraper(channel_id, channel_node):
             channel_node["children"].append(topic_node)
             entries = []
             for video in playlist["entries"]:
+                if is_unavail_video(video["id"]):
+                    continue
                 if video and video["id"] not in entries:
                     entries.append(video["id"])
                     files = [dict(file_type="video", youtube_id=video["id"])]
