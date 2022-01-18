@@ -5,12 +5,12 @@ import youtube_dl
 
 from le_utils.constants import content_kinds, exercises, licenses
 from le_utils.constants.languages import getlang
-from pressurecooker.youtube import get_language_with_alpha2_fallback
 from ricecooker.chefs import JsonTreeChef
 from ricecooker.classes.files import is_youtube_subtitle_file_supported_language
 from ricecooker.classes.nodes import ChannelNode
 from ricecooker.config import LOGGER
 from ricecooker.utils.jsontrees import write_tree_to_json_tree
+from ricecooker.utils.youtube import get_language_with_alpha2_fallback
 
 from common_core_tags import generate_common_core_mapping
 from constants import DUBBED_VIDEOS_BY_LANG
@@ -197,6 +197,7 @@ class KhanAcademySushiChef(JsonTreeChef):
         LOGGER.info("Converting KA nodes to ricecooker json nodes")
         root_topic = self.convert_ka_node_to_ricecooker_node(ka_root_topic, target_lang=lang)
         for topic in root_topic["children"]:
+            LOGGER.debug(topic)
             channel_node["children"].append(topic)
 
         # write to ricecooker tree to json file
@@ -215,6 +216,8 @@ class KhanAcademySushiChef(JsonTreeChef):
         if ka_node.slug in self.slug_blacklist:
             return None
 
+        LOGGER.debug(f"convert_ka_node_to_ricecooker_node {ka_node}")
+
         if isinstance(ka_node, KhanTopic):
             LOGGER.debug('Converting ka_node ' + ka_node.slug + ' to ricecooker json')
             topic = dict(
@@ -226,6 +229,7 @@ class KhanAcademySushiChef(JsonTreeChef):
                 children=[],
             )
             for ka_node_child in ka_node.children:
+                LOGGER.debug(f" Child {ka_node_child}")
                 if isinstance(ka_node_child, KhanTopic) and ka_node_child.slug in self.topic_replacements:
                     # This topic must be replaced by a list of other topic nodes
                     replacements = self.topic_replacements[ka_node_child.slug]
@@ -293,6 +297,7 @@ class KhanAcademySushiChef(JsonTreeChef):
                 return None
 
         elif isinstance(ka_node, KhanExercise):
+            LOGGER.debug(f"EXERCISE {ka_node}")
             if ka_node.mastery_model in EXERCISE_MAPPING:
                 mastery_model = EXERCISE_MAPPING[ka_node.mastery_model]
             else:
@@ -324,7 +329,10 @@ class KhanAcademySushiChef(JsonTreeChef):
                 questions=[],
                 tags=tags,
             )
+
+            LOGGER.debug(f"EXERCISE DICT {exercise}")
             for ka_assessment_item in ka_node.get_assessment_items():
+                LOGGER.debug(f".. assess {ka_assessment_item}")
                 if ka_assessment_item.data and ka_assessment_item.data != "null":
                     assessment_item = dict(
                         question_type=exercises.PERSEUS_QUESTION,
@@ -336,6 +344,7 @@ class KhanAcademySushiChef(JsonTreeChef):
             # if there are no questions for this exercise, return None
             if not exercise["questions"]:
                 return None
+            LOGGER.debug("> DONE exercise")
             return exercise
 
         elif isinstance(ka_node, KhanVideo):
