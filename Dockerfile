@@ -1,6 +1,11 @@
 FROM python:3.8
 LABEL org.opencontainers.image.source https://github.com/openzim/khan-chef
 
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends locales-all ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /app
 WORKDIR /app
 COPY requirements.txt /app/
